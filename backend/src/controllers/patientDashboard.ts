@@ -9,7 +9,7 @@ import { Patient } from '../schema/patient.js'
 
 // jwt import
 import jwt from 'jsonwebtoken'
-// how the fuck did I not have time to code today
+
 // path and dot env import
 import path from "path"
 import { fileURLToPath } from "url"
