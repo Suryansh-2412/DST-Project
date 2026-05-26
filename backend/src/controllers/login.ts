@@ -44,8 +44,7 @@ export const login = TryCatch(
             return
         }
 
-        // const isMatch = await bcrypt.compare(password, user.password)
-        const isMatch = (password == user.password)
+        const isMatch = await bcrypt.compare(password, user.password)
 
         if (!isMatch) {
             res.status(400).json({ message: "Invalid credentials" })
