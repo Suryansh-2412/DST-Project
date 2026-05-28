@@ -13,17 +13,15 @@ dotenv.config({
     path: path.resolve(__dirname, "../../.env")
 })
 
-export interface AuthRequest extends Request {
-    user: {
+export interface AuthRequest<B = any> extends Request<{}, {}, B> {
+    user?: {
         id: string,
         role: string
     }
 }
 
-export const authMiddleware = TryCatch(async (req: Request, res: Response, next: NextFunction) => {
+export const authMiddleware = TryCatch(async (req: AuthRequest, res: Response, next: NextFunction) => {
     const token = req.cookies.token
-
-    let authReq = req as AuthRequest
 
     if (!token) {
         res.status(401).json({ message: "Not authenticated" })
@@ -35,7 +33,7 @@ export const authMiddleware = TryCatch(async (req: Request, res: Response, next:
         process.env.JWT_SECRET as string
     ) as { id: string; role: string }
 
-    authReq.user = decoded
+    req.user = decoded
     return next()
 
 })

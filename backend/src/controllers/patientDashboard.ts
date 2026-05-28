@@ -24,27 +24,16 @@ dotenv.config({
     path: path.resolve(__dirname, "../../.env")
 })
 
-const patientDashboard = TryCatch(async (req: Request, res: Response, next: NextFunction) => {
-
-    // get and verify token
-    const token = req.cookies.token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
-            id: string,
-            role: string
-        }
-
-    // decode jwt and cast as user{id, role}
-    let authReq = req as AuthRequest
-    authReq.user = decoded    
+const patientDashboard = TryCatch(async (req: AuthRequest, res: Response, next: NextFunction) => {
     
     // check if token is null and role is patient
-    if (!token || authReq.user.role !== 'patient') {
+    if (!req.user|| req.user.role !== 'patient') {
         res.status(403).json({ message: "Access denied" })         
         return
     }
 
     // get patient details
-    const patient = await Patient.findById(authReq.user.id)
+    const patient = await Patient.findById(req.user.id)
 
     // check patient exists
     if(!patient || !patient._id){
