@@ -1,39 +1,41 @@
-import type { Request, Response, NextFunction } from "express"
-import jwt from "jsonwebtoken"
+import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
 
-import path from "path"
-import { fileURLToPath } from "url"
-import dotenv from "dotenv"
-import { TryCatch } from "./error.js"
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
-dotenv.config({
-    path: path.resolve(__dirname, "../../.env")
-})
-
-export interface AuthRequest<B = any> extends Request<{}, {}, B> {
+export interface AuthRequest extends Request {
     user?: {
-        id: string,
-        role: string
-    }
+        id: string;
+        role: 'patient' | 'doctor' | 'admin';
+    };
 }
 
-export const authMiddleware = TryCatch(async (req: AuthRequest, res: Response, next: NextFunction) => {
-    const token = req.cookies.token
+export const authenticateJWT = (req: AuthRequest, res: Response, next: NextFunction) => {
+    const authHeader = req.headers.authorization;
 
-    if (!token) {
-        res.status(401).json({ message: "Not authenticated" })
-        return
+    if (authHeader) {
+        const token = authHeader.split(' ')[1];
+
+        jwt.verify(token, process.env.JWT_SECRET || 'super_secret_key_nidaan_ai_platform_2026', (err: any, user: any) => {
+            if (err) {
+                return res.status(403).json({ message: 'Forbidden: Invalid token' });
+            }
+            req.user = user as { id: string; role: 'patient' | 'doctor' | 'admin' };
+            next();
+        });
+    } else {
+        res.status(401).json({ message: 'Unauthorized: Access token missing' });
     }
-    
-    const decoded = jwt.verify(
-        token,
-        process.env.JWT_SECRET as string
-    ) as { id: string; role: string }
+};
 
-    req.user = decoded
-    return next()
+export const requireRole = (roles: Array<'patient' | 'doctor' | 'admin'>) => {
+    return (req: AuthRequest, res: Response, next: NextFunction) => {
+        if (!req.user) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
 
-})
+        if (!roles.includes(req.user.role)) {
+            return res.status(403).json({ message: 'Forbidden: Insufficient permissions' });
+        }
+
+        next();
+    };
+};
