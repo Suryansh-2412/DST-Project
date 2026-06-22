@@ -1,8 +1,7 @@
 import type { Request, Response, NextFunction } from "express"
 import { TryCatch } from "../middleware/error.js"
-import validator from 'validator'
-import { Doctor } from "../schema/doctor.js"
-import { Patient } from "../schema/patient.js"
+import { Doctor, type IDoctor } from "../schema/doctor.js"
+import { Patient, type IPatient } from "../schema/patient.js"
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 
@@ -19,24 +18,44 @@ dotenv.config({
 
 export const login = TryCatch(
     async (req: Request, res: Response, next: NextFunction) => {
+        const { id, password, role } = req.body
 
-        const { id, password } = req.body
+        if (role === "admin") {
+            if (id === "admin@gmail.com" && password === "admin123") {
+                const token = jwt.sign(
+                    { id: "admin_id", role: "admin" },
+                    process.env.JWT_SECRET as string,
+                    { expiresIn: "1d" }
+                )
 
-        let user
-        let isDoctor = false
+                res.cookie("token", token, {
+                    httpOnly: true,
+                    secure: false, // for local testing
+                    sameSite: "lax",
+                    maxAge: 1 * 24 * 60 * 60 * 1000
+                })
 
-        if (validator.isEmail(id) && id !== "admin@gmail.com") {
-            user = await Doctor.findOne({ email: id })
-            isDoctor = true
-        } else {
-
-            if(validator.isMobilePhone(id))
-                user = await Patient.findOne({ phone: id })
-
-            else{ 
-                res.status(400).json({message: "Invalid Credentials"})
-                return 
+                res.status(200).json({
+                    success: true,
+                    role: "admin"
+                })
+                return
+            } else {
+                res.status(400).json({ message: "Invalid Admin Credentials" })
+                return
             }
+        }
+
+        let user: IDoctor | IPatient | null = null
+        let isDoctor = role === "doctor"
+
+        if (isDoctor) {
+            user = await Doctor.findOne({ email: id })
+        } else if (role === "patient") {
+            user = await Patient.findOne({ phone: id })
+        } else {
+            res.status(400).json({ message: "Invalid Role" })
+            return
         }
 
         if (!user) {
@@ -44,8 +63,7 @@ export const login = TryCatch(
             return
         }
 
-        // const isMatch = await bcrypt.compare(password, user.password)
-        const isMatch = (password == user.password)
+        const isMatch = await bcrypt.compare(password, user.password)
 
         if (!isMatch) {
             res.status(400).json({ message: "Invalid credentials" })
@@ -53,9 +71,7 @@ export const login = TryCatch(
         }
 
         const token = jwt.sign(
-            { id: user._id, 
-              role: isDoctor ? "doctor" : "patient" 
-            },
+            { id: user._id, role: role },
             process.env.JWT_SECRET as string,
             { expiresIn: "1d" }
         )
@@ -66,11 +82,10 @@ export const login = TryCatch(
             sameSite: "lax",
             maxAge: 1 * 24 * 60 * 60 * 1000
         })
-        
 
         res.status(200).json({
             success: true,
-            role: isDoctor? "doctor": "patient" 
+            role: role 
         })
         return
     }

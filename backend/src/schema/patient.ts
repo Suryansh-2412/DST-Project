@@ -1,7 +1,8 @@
-import mongoose from 'mongoose'
+import mongoose, { Document } from 'mongoose'
 import validator from 'validator'
+import bcrypt from 'bcryptjs'
 
-interface IPatient extends Document{
+export interface IPatient extends Document{
 
     name: string,
     password: string,
@@ -37,12 +38,12 @@ const patientSchema = new mongoose.Schema(
         password: {
             type: String,
             required: true,
-            default: "password"
         },
 
         phone: {
             type: String,
             required: [true, 'please enter phone number'],
+            unique: true,
             validate: validator.default.isMobilePhone
         },
 
@@ -104,6 +105,11 @@ const patientSchema = new mongoose.Schema(
 
 )
 
+patientSchema.pre('save', async function () {
+    if (!this.isModified('password')) return
+    this.password = await bcrypt.hash(this.password, 10)
+})
+
 patientSchema.virtual("age").get( function() {
 
     const today = new Date()
@@ -117,4 +123,4 @@ patientSchema.virtual("age").get( function() {
 })
 
 
-export const Patient = mongoose.model<IPatient>("Patient", patientSchema)
+export const Patient = mongoose.model<IPatient>("Patient", patientSchema)
