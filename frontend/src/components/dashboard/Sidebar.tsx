@@ -72,7 +72,16 @@ const Sidebar = ({ role }: SidebarProps) => {
           Settings
         </div>
         <div 
-          onClick={() => navigate('/login')}
+          onClick={() => {
+            localStorage.removeItem("isLoggedIn");
+            localStorage.removeItem("userRole");
+            localStorage.removeItem("token");
+            localStorage.removeItem("userName");
+            localStorage.removeItem("userId");
+            localStorage.clear();
+            navigate('/login',{replace:true});
+            window.location.reload();
+          }}
           className="flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl font-medium cursor-pointer mt-1 transition-colors"
         >
           <LogOut size={20} />

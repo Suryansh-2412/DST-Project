@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Brain, Activity, ShieldCheck, Cpu } from 'lucide-react';
 
 const AIModelInfo = () => {
