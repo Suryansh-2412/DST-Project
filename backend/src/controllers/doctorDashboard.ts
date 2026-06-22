@@ -19,7 +19,7 @@ dotenv.config({
     path: path.resolve(__dirname, "../../.env")
 })
 
-const doctorDashboard = TryCatch(async (req: AuthRequest, res: Response, next: NextFunction) => {
+const doctorDashboard = TryCatch(async (req: Request, res: Response, next: NextFunction) => {
 
     const token = req.cookies.token
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
@@ -63,7 +63,7 @@ const doctorDashboard = TryCatch(async (req: AuthRequest, res: Response, next: N
         // stat card entries
         stats: {
             totalPatients,
-            // active cases not needed but for safety //activeCases,
+            // active cases not needed nut for safety //activeCases,
             //criticalAlerts,
             aiAnalyses
         },

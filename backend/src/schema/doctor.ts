@@ -1,6 +1,7 @@
 import mongoose, { Schema, Types, Document } from 'mongoose'
+import bcrypt from 'bcryptjs'
 
-interface IDoctor extends Document{
+export interface IDoctor extends Document{
 
     name: string,
     email: string,
@@ -38,7 +39,6 @@ const doctorSchema = new mongoose.Schema(
         password: {
             type: String,
             required: true,
-            default: "password"
         },
 
         license_no: {
@@ -100,4 +100,9 @@ const doctorSchema = new mongoose.Schema(
 
 )
 
-export const Doctor = mongoose.model<IDoctor>("Doctor", doctorSchema)
+doctorSchema.pre('save', async function () {
+    if (!this.isModified('password')) return
+    this.password = await bcrypt.hash(this.password, 10)
+})
+
+export const Doctor = mongoose.model<IDoctor>("Doctor", doctorSchema)

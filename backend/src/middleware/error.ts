@@ -7,6 +7,8 @@ export const errorMiddleware = (err: ErrorHandler, req: Request, res: Response, 
     err.message ||= "Some Error Occurred"
     err.statusCode ||=500
 
+    console.error("Backend Error:", err);
+
     res.status(err.statusCode).json({
         success: false,
         message: err.message
