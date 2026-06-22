@@ -1,41 +1,41 @@
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import type { Request, Response, NextFunction } from "express"
+import jwt from "jsonwebtoken"
+
+import path from "path"
+import { fileURLToPath } from "url"
+import dotenv from "dotenv"
+import { TryCatch } from "./error.js"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+dotenv.config({
+    path: path.resolve(__dirname, "../../.env")
+})
 
 export interface AuthRequest extends Request {
-    user?: {
-        id: string;
-        role: 'patient' | 'doctor' | 'admin';
-    };
+    user: {
+        id: string,
+        role: string
+    }
 }
 
-export const authenticateJWT = (req: AuthRequest, res: Response, next: NextFunction) => {
-    const authHeader = req.headers.authorization;
+export const authMiddleware = TryCatch(async (req: Request, res: Response, next: NextFunction) => {
+    const token = req.cookies.token
 
-    if (authHeader) {
-        const token = authHeader.split(' ')[1];
+    let authReq = req as AuthRequest
 
-        jwt.verify(token, process.env.JWT_SECRET || 'super_secret_key_nidaan_ai_platform_2026', (err: any, user: any) => {
-            if (err) {
-                return res.status(403).json({ message: 'Forbidden: Invalid token' });
-            }
-            req.user = user as { id: string; role: 'patient' | 'doctor' | 'admin' };
-            next();
-        });
-    } else {
-        res.status(401).json({ message: 'Unauthorized: Access token missing' });
+    if (!token) {
+        res.status(401).json({ message: "Not authenticated" })
+        return
     }
-};
+    
+    const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET as string
+    ) as { id: string; role: string }
 
-export const requireRole = (roles: Array<'patient' | 'doctor' | 'admin'>) => {
-    return (req: AuthRequest, res: Response, next: NextFunction) => {
-        if (!req.user) {
-            return res.status(401).json({ message: 'Unauthorized' });
-        }
+    authReq.user = decoded
+    return next()
 
-        if (!roles.includes(req.user.role)) {
-            return res.status(403).json({ message: 'Forbidden: Insufficient permissions' });
-        }
-
-        next();
-    };
-};
+})
