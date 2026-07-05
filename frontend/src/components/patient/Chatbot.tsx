@@ -1,28 +1,51 @@
 import React, { useState } from 'react';
-import { Send, Bot, User } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useOutletContext } from 'react-router-dom';
+import { Send, Bot, User, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Chatbot = () => {
+  const context = useOutletContext<{ user: { id: string, name: string } }>();
   const [messages, setMessages] = useState([
-    { id: 1, type: 'bot', text: 'Hello! I am your personal health assistant. I can help you with diet plans, exercise routines, or general health queries. How can I help you today?' }
+    { id: 1, type: 'bot', text: `Hello ${context?.user?.name || ''}! I am your personal health assistant. I can help you with diet plans, exercise routines, or general health queries. How can I help you today?` }
   ]);
   const [input, setInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
+  const handleSend = async () => {
+    if (!input.trim() || isTyping) return;
     
-    const newMsg = { id: Date.now(), type: 'user', text: input };
-    setMessages(prev => [...prev, newMsg]);
+    const userMsg = { id: Date.now(), type: 'user', text: input };
+    setMessages(prev => [...prev, userMsg]);
     setInput('');
+    setIsTyping(true);
 
-    // Mock Response
-    setTimeout(() => {
+    try {
+      const response = await fetch('http://localhost:8000/query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: input,
+          user_id: context?.user?.id || 'public'
+        })
+      });
+
+      const data = await response.json();
+      
       setMessages(prev => [...prev, { 
         id: Date.now() + 1, 
         type: 'bot', 
-        text: "I understand. Based on your profile, I recommend increasing your water intake and trying light cardio for 20 mins. Would you like a specific meal plan?" 
+        text: data.answer || "I'm sorry, I'm having trouble connecting to my knowledge base right now." 
       }]);
-    }, 1500);
+    } catch (err) {
+      console.error("Chatbot Error:", err);
+      setMessages(prev => [...prev, { 
+        id: Date.now() + 1, 
+        type: 'bot', 
+        text: "I couldn't reach the assistant. Please make sure the AI service is running." 
+      }]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   return (
@@ -41,21 +64,39 @@ const Chatbot = () => {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg) => (
-          <motion.div 
-            key={msg.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`flex gap-3 ${msg.type === 'user' ? 'flex-row-reverse' : ''}`}
-          >
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.type === 'user' ? 'bg-gray-200' : 'bg-primary/10 text-primary'}`}>
-              {msg.type === 'user' ? <User size={14} /> : <Bot size={14} />}
-            </div>
-            <div className={`p-3 rounded-2xl max-w-[80%] text-sm ${msg.type === 'user' ? 'bg-secondary text-white rounded-tr-none' : 'bg-gray-100 text-secondary rounded-tl-none'}`}>
-              {msg.text}
-            </div>
-          </motion.div>
-        ))}
+        <AnimatePresence initial={false}>
+          {messages.map((msg) => (
+            <motion.div 
+              key={msg.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className={`flex gap-3 ${msg.type === 'user' ? 'flex-row-reverse' : ''}`}
+            >
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.type === 'user' ? 'bg-gray-200' : 'bg-primary/10 text-primary'}`}>
+                {msg.type === 'user' ? <User size={14} /> : <Bot size={14} />}
+              </div>
+              <div className={`p-3 rounded-2xl max-w-[80%] text-sm ${msg.type === 'user' ? 'bg-secondary text-white rounded-tr-none' : 'bg-gray-100 text-secondary rounded-tl-none'}`}>
+                {msg.text}
+              </div>
+            </motion.div>
+          ))}
+          {isTyping && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex gap-3"
+            >
+              <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                <Bot size={14} />
+              </div>
+              <div className="bg-gray-100 p-3 rounded-2xl rounded-tl-none flex items-center gap-2">
+                <Loader2 size={16} className="animate-spin text-primary" />
+                <span className="text-xs text-text-gray italic">Assistant is typing...</span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <div className="p-4 border-t border-gray-100">

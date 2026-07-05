@@ -21,7 +21,14 @@ const Header = ({ user }: { user: User }) => {
 
   const handleLogout = () => {
     setShowDropdown(false);
-    navigate('/login');
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("token");
+    localStorage.removeItem("userName");
+    localStorage.removeItem("userId");
+    localStorage.clear();
+    navigate('/login',{replace:true});
+    window.location.reload();
   };
 
   const handleSettings = () => {
@@ -30,7 +37,7 @@ const Header = ({ user }: { user: User }) => {
   };
 
   return (
-    <header className="flex justify-between items-center mb-8 bg-white/50 backdrop-blur-sm sticky top-0 z-10 py-4 px-1 rounded-xl">
+    <header className="flex justify-between items-center mb-8 bg-white/50 backdrop-blur-sm py-4 px-1 rounded-xl">
       <div>
         <h1 className="text-2xl font-bold text-secondary">
           {user.role === 'doctor' ? `Dr. ${user.name}` : user.role === 'admin' ? 'System Administrator' : `Welcome, ${user.name}`}
