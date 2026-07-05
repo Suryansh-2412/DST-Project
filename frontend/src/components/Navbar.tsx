@@ -43,7 +43,7 @@ const Navbar = () => {
         <motion.button 
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => navigate('/login')}
+          onClick={() => navigate('/register')}
           className="border border-primary text-primary font-medium px-6 py-2 rounded-full hover:bg-primary hover:text-white transition-colors"
         >
           Sign up

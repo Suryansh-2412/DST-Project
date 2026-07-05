@@ -24,7 +24,8 @@ const Login = () => {
       credentials: "include",
       body: JSON.stringify({
         id,
-        password
+        password,
+        role
       })
     });
 
@@ -150,6 +151,18 @@ const Login = () => {
               )}
             </button>
           </form>
+
+          <div className="text-center mt-6">
+            <p className="text-sm text-gray-500">
+              New to Nidaan?{' '}
+              <button 
+                onClick={() => navigate('/register')}
+                className="text-primary font-bold hover:underline"
+              >
+                Create Account
+              </button>
+            </p>
+          </div>
 
           <p className="text-center text-xs text-gray-400 mt-6">
             Protected by HIPAA compliant encryption.
