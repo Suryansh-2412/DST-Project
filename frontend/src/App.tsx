@@ -15,7 +15,7 @@ import PatientProfile from './pages/dashboard/doctor/PatientProfile';
 import PatientHome from './pages/dashboard/patient/PatientHome';
 import PatientRecords from './pages/dashboard/patient/PatientRecords';
 import PatientCheckIn from './pages/dashboard/patient/PatientCheckIn';
-import Chatbot from './components/patient/Chatbot';
+import AssistantGate from './components/patient/AssistantGate';
 
 // Admin Pages
 import AdminHome from './pages/dashboard/admin/AdminHome';
@@ -55,7 +55,7 @@ function App() {
           <Route index element={<PatientHome />} />
           <Route path="records" element={<PatientRecords />} />
           <Route path="checkin" element={<PatientCheckIn />} />
-          <Route path="chat" element={<div className="max-w-2xl mx-auto"><Chatbot /></div>} />
+          <Route path="chat" element={<AssistantGate />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
 

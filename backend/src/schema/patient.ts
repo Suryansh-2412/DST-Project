@@ -21,6 +21,7 @@ export interface IPatient extends Document{
         createdAt: Date
     }],
     gender: "male" | "female" | "other",
+    subscription: mongoose.Types.ObjectId | null,
     createdAt: Date,
     updatedAt: Date,
     
@@ -98,7 +99,13 @@ const patientSchema = new mongoose.Schema(
                 fileUrl: String,
                 createdAt: Date
             }
-        ]
+        ],
+
+        subscription: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Subscription",
+            default: null
+        }
 
     },
     {timestamps: true}

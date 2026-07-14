@@ -10,6 +10,8 @@ import { errorMiddleware } from './middleware/error.js'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import dashboardRoute from './routes/dashboardRoute.js'
+import paymentRoute from './routes/payment.routes.js'
+import subscriptionRoute from './routes/subscription.routes.js'
 
 const port = 5000
 
@@ -29,6 +31,8 @@ connectDB()
 app.use('/', loginRoute)
 app.use('/', userRoute)
 app.use('/dashboard', dashboardRoute)
+app.use('/payment', paymentRoute)
+app.use('/subscription', subscriptionRoute)
 
 // error handling
 app.use(errorMiddleware)

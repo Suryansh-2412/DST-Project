@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/dashboard/Sidebar';
 import Header from '../components/dashboard/Header';
 import { UserRole } from '../types';
+import { getSubscriptionStatus, type SubscriptionStatus } from '../services/paymentService';
 
 interface Props {
   role: UserRole;
@@ -18,6 +19,20 @@ const DashboardLayout = ({ role }: Props) => {
   });
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [subscription, setSubscription] = useState<SubscriptionStatus>({
+    active: false,
+    plan: null,
+    expiresOn: null,
+  });
+
+  const refreshSubscription = useCallback(() => {
+    if (role !== 'patient') return;
+    getSubscriptionStatus().then(setSubscription);
+  }, [role]);
+
+  useEffect(() => {
+    refreshSubscription();
+  }, [refreshSubscription]);
 
   useEffect(() => {
     let isMounted = true;
@@ -88,10 +103,10 @@ const DashboardLayout = ({ role }: Props) => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex font-sans">
-      <Sidebar role={role} />
+      <Sidebar role={role} subscribed={role !== 'patient' || subscription.active} />
       <main className="flex-1 md:ml-64 p-8">
         <Header user={user} />
-        <Outlet context={{ user, dashboardData }} />
+        <Outlet context={{ user, dashboardData, subscription, refreshSubscription }} />
       </main>
     </div>
   );

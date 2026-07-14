@@ -1,6 +1,8 @@
 import React from 'react';
 import { Calendar, Activity, FileText, ChevronRight, Sun } from 'lucide-react';
 import { useOutletContext, useNavigate } from 'react-router-dom';
+import PremiumCard from '../../../components/patient/PremiumCard';
+import type { SubscriptionStatus } from '../../../services/paymentService';
 
 interface PatientDashboardData {
   name: string;
@@ -26,10 +28,13 @@ const PatientHome = () => {
       role: string;
     };
     dashboardData: PatientDashboardData | null;
+    subscription: SubscriptionStatus;
+    refreshSubscription: () => void;
   }>();
 
   const patientName = context?.user?.name || 'Patient';
   const patientData = context?.dashboardData;
+  const subscription = context?.subscription || { active: false, plan: null, expiresOn: null };
   const navigate = useNavigate();
 
   const getGreeting = () => {
@@ -64,6 +69,12 @@ const PatientHome = () => {
           <Activity size={300} />
         </div>
       </div>
+
+      <PremiumCard
+        subscription={subscription}
+        patientName={patientName}
+        onSubscribed={context?.refreshSubscription || (() => {})}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Next Appointment */}

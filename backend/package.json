@@ -8,6 +8,7 @@
     "build": "tsc",
     "watch": "tsc -w",
     "dev": "nodemon dist/app.js",
+    "seed:plans": "node dist/scripts/seedPlans.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -23,6 +24,7 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.3.3",
     "multer": "^2.1.1",
+    "razorpay": "^2.9.6",
     "uuid": "^13.0.0",
     "validator": "^13.15.26"
   },

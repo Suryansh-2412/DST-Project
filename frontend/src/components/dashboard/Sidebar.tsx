@@ -1,13 +1,14 @@
 import React from 'react';
-import { Users, Activity, Settings, LogOut, MessageSquare, Home, ClipboardList, Thermometer, ShieldCheck, Cpu } from 'lucide-react';
+import { Users, Activity, Settings, LogOut, MessageSquare, Home, ClipboardList, Thermometer, ShieldCheck, Cpu, Lock } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { UserRole } from '../../types';
 
 interface SidebarProps {
   role: UserRole;
+  subscribed?: boolean;
 }
 
-const Sidebar = ({ role }: SidebarProps) => {
+const Sidebar = ({ role, subscribed = true }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -29,7 +30,7 @@ const Sidebar = ({ role }: SidebarProps) => {
     { icon: Home, label: 'Home', path: '/dashboard/patient' },
     { icon: ClipboardList, label: 'My Records', path: '/dashboard/patient/records' },
     { icon: Thermometer, label: 'Check-in', path: '/dashboard/patient/checkin' },
-    { icon: MessageSquare, label: 'Assistant', path: '/dashboard/patient/chat' },
+    { icon: MessageSquare, label: 'Assistant', path: '/dashboard/patient/chat', locked: role === 'patient' && !subscribed },
   ];
 
   return (
@@ -54,7 +55,8 @@ const Sidebar = ({ role }: SidebarProps) => {
             }`}
           >
             <item.icon size={20} />
-            {item.label}
+            <span className="flex-1">{item.label}</span>
+            {'locked' in item && item.locked && <Lock size={14} className="text-text-gray" />}
           </div>
         ))}
       </nav>
